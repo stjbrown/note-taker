@@ -29,44 +29,16 @@ Alternatively, you can place a `.env` file in your `NOTES_DIR` with these variab
 **Location**: Root of your notes directory.
 
 **Instructions**:
-1. **Load Configuration**:
-    - Resolve configuration values using the following **Priority Order** (highest to lowest):
-        1. **System Environment Variables**: (e.g. `export AGENT_ID=foo`)
-        2. **Skill Directory `.env`**: (`~/.agent/skills/note-taker/.env`)
-        3. **Notes Directory `.env`**: (`$NOTES_DIR/.env`)
-    - *Note*: Higher priority sources override lower ones.
-    - **Auto-Clone**: If `NOTES_DIR` does NOT exist and `GIT_REPO_URL` is resolved:
-        - Run `git clone {GIT_REPO_URL} {NOTES_DIR}`.
-    - **Initialization**:
-        - Check if `NOTES_DIR` exists.
-        - Check if `.gitignore` exists in `NOTES_DIR`.
-        - If missing, create it with content: `.env`.
-        - If present, ensure `.env` is listed within it.
-2. **Git Sync (Start)**: If `GIT_SYNC` is `true`, run `git pull` in the notes directory.
-3. **Context Detection**:
+1. Determine the **Context Name**:
     - Check the **Current Working Directory (CWD)**.
     - If the user is in a specific project folder (e.g. `~/code/my-app`), use the folder name (`my-app`) as the **Context Name**.
-    - If the user is in a generic location (home dir, Desktop) or no distinct project is obvious, use "General" or "Daily Log" as the Context Name.
+    - If the user is in a generic location or no distinct project is obvious, use "General" or "Daily Log".
     - *Tip*: If the user explicitly mentions a project ("Take a note for the X project"), use that instead.
-3. Determine the filename:
-    - Get current date `YYYY-MM-DD`.
-    - Check for `AGENT_ID` env var.
-    - If set, filename is `YYYY-MM-DD-{AGENT_ID}.md`.
-    - Else, filename is `YYYY-MM-DD.md`.
-4. Check if the file exists in the notes directory.
-5. If it does not exist:
-    - Copy the content of `resources/templates/daily.md` to the new file and fill in the date.
-6. If it exists (or after creation):
-    - Read the current file content.
-    - Check if a Heading matching the **Context Name** exists (e.g. `## my-app`).
-    - If the heading exists:
-        - Append the new note as a bullet point under that heading.
-    - If the heading does not exist:
-        - Add the new heading (`## {Context Name}`) to the end of the file and add the note as a bullet point under it.
-7. **Git Sync (End)**: If `GIT_SYNC` is `true`:
-    - Run `git add .`
-    - Run `git commit -m "Auto-save from {AGENT_ID or 'default'}"`
-    - Run `git push`
+2. Run the note creation script:
+    ```bash
+    python3 scripts/daily_note.py "{Note Content}" --context "{Context Name}"
+    ```
+    *Note: This script automatically handles loading configuration, git syncing (if enabled), and formatting.*
 
 ### 2. Archive Old Notes
 **When to use**: To clean up the root directory by moving old daily notes to an archive folder.
@@ -86,7 +58,11 @@ python3 /path/to/skill/scripts/archive_notes.py --days 30 --dir /path/to/notes
 1. Identify the topic.
 2. Research using `search_web`.
 3. Summarize findings.
-4. Follow "Create a Daily Note" instructions to add the summary.
+3. Summarize findings.
+4. Run the note creation script:
+    ```bash
+    python3 scripts/daily_note.py "{Summary of findings}" --context "{Topic}"
+    ```
 
 ## Future Capabilities
 - **Audio to Text**: Transcribe audio using Whisper.
